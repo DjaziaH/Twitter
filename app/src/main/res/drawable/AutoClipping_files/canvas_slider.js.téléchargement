@@ -1,0 +1,187 @@
+function canvasSlider(canvasElementId,valueElementId,minVal,maxVal,step,style) {
+    this.canvasElementId = canvasElementId;
+    this.valueElementId = valueElementId;
+    this.minVal = parseInt(minVal);
+    this.maxVal = parseInt(maxVal);
+    this.step = parseInt(step);
+    this.style = style;
+    this.setValue(document.getElementById(valueElementId).value);
+    this.initCanvas();
+}
+
+canvasSlider.prototype.setValue = function(val) {
+    var oldval = this.curValue;
+    var newval = parseInt(val);
+    if(isNaN(newval)) {
+        newval = oldval;
+    } else {
+        if(newval < this.minVal) {
+            newval = this.minVal;
+        }
+        if(newval > this.maxVal) {
+            newval = this.maxVal;
+        }
+    }
+    this.curValue = newval;
+}
+
+canvasSlider.prototype.setValueByX = function(x) {
+    var style = cavasSliderStyles[this.style];
+    var canvasEl = document.getElementById(this.canvasElementId);
+    var knobRadius = parseInt(style['slider-knobradius']);
+
+    var newval = '';
+
+    if(x < knobRadius) {
+        newval = this.minVal;
+    }
+    if(x > canvasEl.width - knobRadius) {
+        newval = this.maxVal;
+    }
+
+    if(x >= knobRadius && x <= canvasEl.width - knobRadius) {
+        var slider_width = canvasEl.width - knobRadius*2;
+        var mouse_on_slider = x-knobRadius;
+        var slider_pos_n = (mouse_on_slider/slider_width)*(this.maxVal - this.minVal);
+        newval = slider_pos_n + this.minVal;
+    }
+
+    this.setValue(Math.round(newval));
+}
+
+canvasSlider.prototype.initCanvas = function() {
+    var canvasEl = document.getElementById(this.canvasElementId);
+    var canvasParent = canvasEl.parentElement;
+    canvasEl.width = canvasParent.clientWidth;
+    canvasEl.height = canvasParent.clientHeight;
+}
+
+canvasSlider.prototype.render = function() {
+    var canvasEl = document.getElementById(this.canvasElementId)
+    var ctx = canvasEl.getContext("2d");
+    var style = cavasSliderStyles[this.style];
+    var knobRadius = parseInt(style['slider-knobradius']);
+
+    // Update the slider value based on form element value
+    this.setValue(document.getElementById(this.valueElementId).value);
+
+    // Clear canvas with background
+    ctx.fillStyle = style['background-color'];
+    ctx.fillRect(0,0,canvasEl.width,canvasEl.height);
+    ctx.fillStyle = style['slider-color'];
+
+    // Draw slider
+    ctx.strokeStyle = style['slider-color'];
+    ctx.beginPath();
+    ctx.lineWidth = 4;
+    ctx.lineCap = 'round';
+    ctx.moveTo(knobRadius,canvasEl.height/2);
+    ctx.lineTo(canvasEl.width-knobRadius,canvasEl.height/2);
+    ctx.stroke();
+    ctx.closePath();
+
+    // Draw knob
+    // Calculate horizontal knob position
+    var kcx = knobRadius + ((canvasEl.width-knobRadius*2)/(this.maxVal - this.minVal))*(this.curValue - this.minVal);
+    // Calculate vertical knob position
+    var kcy = canvasEl.height/2;
+    // Do the actual drawing of the knob
+    ctx.strokeStyle = ctx.fillStyle = style['slider-knobcolor'];
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.arc(kcx, kcy, knobRadius, 0, 2 * Math.PI, false);
+    ctx.fill();
+    ctx.stroke();
+    ctx.closePath();
+}
+
+var cavasSliderStyles = {
+    'ac' : {
+        'background-color' : '#2f3638',
+        'slider-color' : '#464F51',
+        'slider-knobcolor' : '#ffffff',
+        'slider-knobradius' : '5'
+    }
+};
+
+var canvasSliders = {};
+var canvasSlidersByValueElementId = {};
+
+var canvasSliders_selectedSlider = null;
+
+var canvasSlider_initAllSliders = function(e) {
+    var canvasElements = document.getElementsByClassName('canvas-slider');
+    var move_n_down = function(e) {
+        if(canvasSliders_selectedSlider != null) {
+            var canvas = document.getElementById(canvasSliders_selectedSlider);
+            var pos = getMousePos(canvas,e);
+            canvasSliders[canvasSliders_selectedSlider].setValueByX(pos.x);
+            document.getElementById(canvasSliders[canvasSliders_selectedSlider].valueElementId).value
+            = canvasSliders[canvasSliders_selectedSlider].curValue;
+            canvasSliders[canvasSliders_selectedSlider].render();
+        }
+    };
+
+    for(var i = 0; i < canvasElements.length; ++i) {
+        var canvasElement = canvasElements[i];
+        var canvasElementId = canvasElement.getAttribute("id");
+        var valueElementId = canvasElement.getAttribute("value-element");
+        var minVal = canvasElement.getAttribute("min");
+        var maxVal = canvasElement.getAttribute("max");
+        var step = canvasElement.getAttribute("step");
+        var style = canvasElement.getAttribute("slider-style");
+        canvasSlidersByValueElementId[valueElementId] =
+        canvasSliders[canvasElementId] =
+        new canvasSlider(canvasElementId,valueElementId,minVal,maxVal,step,style);
+        document.getElementById(valueElementId).addEventListener('change',function(e) {
+            canvasSlidersByValueElementId[e.target.id].setValue(
+                document.getElementById(e.target.id).value
+            );
+            document.getElementById(e.target.id).value =
+            canvasSlidersByValueElementId[e.target.id].curValue;
+            canvasSlidersByValueElementId[e.target.id].render();
+        });
+        canvasElement.addEventListener('mousedown',function(e) {
+            canvasSliders_selectedSlider = e.target.id;
+            move_n_down(e);
+        });
+    }
+    document.addEventListener('mouseup',function(e) {
+        if(canvasSliders_selectedSlider != null) {
+            var active_canvasSlider = canvasSliders[canvasSliders_selectedSlider];
+            var valueElement = document.getElementById(active_canvasSlider.valueElementId);
+            if ("createEvent" in document) {
+                var evt = document.createEvent("HTMLEvents");
+                evt.initEvent("change", false, true);
+                valueElement.dispatchEvent(evt);
+            } else {
+                valueElement.fireEvent("onchange");
+            }
+            canvasSliders_selectedSlider = null;
+        }
+    });
+    document.addEventListener('mousemove',function(e) {
+        move_n_down(e);
+    });
+}
+
+var canvasSlider_initVisible = function() {
+    for(var sliderElementId in canvasSliders) {
+        var canvasSlider = canvasSliders[sliderElementId];
+        canvasSlider.initCanvas();
+        canvasSlider.render();
+    }
+}
+
+window.addEventListener('load',canvasSlider_initAllSliders);
+
+function  getMousePos(canvas, evt) {
+  var rect = canvas.getBoundingClientRect(), // abs. size of element
+      scaleX = canvas.width / rect.width,    // relationship bitmap vs. element for X
+      scaleY = canvas.height / rect.height;  // relationship bitmap vs. element for Y
+
+  return {
+    x: (evt.clientX - rect.left) * scaleX,   // scale mouse coordinates after they have
+    y: (evt.clientY - rect.top) * scaleY     // been adjusted to be relative to element
+  }
+}

@@ -1,0 +1,281 @@
+// Nicer margins for content images based on their position
+$(".textpage img").each(function () {
+    if ($(this).css("float") == "left") {
+        $(this).css("margin-left", "0px");
+    } else if ($(this).css("float") == "right") {
+        $(this).css("margin-right", 0);
+    }
+});
+// Tooltips
+$('[data-tooltip]').mouseenter(function () {
+   
+    var text = $(this).data('tooltip');
+    var position = $(this).data('tooltipposition');
+    var moreClasses = '';
+    if (position === 'top') {
+        var moreClasses = " top";
+    } else if(position === 'left'){
+        var moreClasses = " left";
+    } else if(position === 'right'){
+        var moreClasses = " right";
+    }
+    if ($(this).find('.tooltip').length) {} else {
+        $(this).append('<div class="tooltip' + moreClasses + '"><p class="text">' + text + '</p></div>');
+    }
+    
+    $(this).find('.tooltip').fadeIn(100);
+}).mouseleave(function () {
+    $(this).find('.tooltip').fadeOut(100);
+});
+// Modals
+$('#crop_n_rotate_close').click(function(){closeCropAndRotate();});
+$('.mdl-close, .modal .overlay, .mdl-exit').click(function () {
+    $(this).closest('.modal').fadeOut();
+});
+$(document).keyup(function (e) {
+    if (e.keyCode == 27) {
+        $('.modal:visible').fadeOut();
+    }
+});
+$('body').on('click', '[data-openmodal]', function (e) {
+    e.preventDefault();
+    var modalId = $(this).data('openmodal');
+    $('[data-modal="' + modalId + '"]').fadeIn();
+});
+// Form labels
+$(".frm.frm-01 input").focus(function () {
+    $(this).closest('.input').addClass('hastext');
+}).blur(function () {
+    var value = $(this).val().replace(/\s+/g, '');
+    if (value == '') {
+        $(this).closest('.input').removeClass('hastext');
+    } else {
+        $(this).closest('.input').addClass('hastext');
+    }
+});
+$(document).ready(function () {
+    $('.frm.frm-01 input').each(
+        function () {
+            var value = $(this).val().replace(/\s+/g, '');
+            if (value == '') {
+                $(this).closest('.input').removeClass('hastext');
+            } else {
+                $(this).closest('.input').addClass('hastext');
+            }
+        });
+});
+// Price changer
+
+$('.plan-single .details .type_select select').change(function(){
+    var price = $(this).val();
+    $(this).closest('.details').find('p.price').html(price + ' € <small> / mo</small>');
+});
+// Search reset
+$('.type_search .reset').click(function () {
+    $(this).prev('input').val('');
+    $(this).prev('input').focus();
+});
+// Detect if ie
+var isIe = 0;
+$(document).ready(function () {
+    var ua = window.navigator.userAgent;
+    var msie = ua.indexOf("MSIE ");
+    if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./)) // If Internet Explorer, return version number
+    {
+        //  alert(parseInt(ua.substring(msie + 5, ua.indexOf(".", msie))));
+        isIe = 1;
+    } else // If another browser, return 0
+    {
+        isIe = 0;
+    }
+    return false;
+});
+// Fixed header on scroll
+var lastScrollTop = 0;
+$(window).scroll(function () {
+    
+    if($('#filemanager #main.page').length){}else{
+        
+    var headerH = $('#header').outerHeight();
+    var toolbarH = $('#filemanager .toolbar').outerHeight();
+    var topH = headerH + toolbarH;
+    var fromTop = $(window).scrollTop();
+    var st = $(this).scrollTop();
+    function scrollDown() {
+        $('#filemanager').removeClass('scroll-up');
+        if (fromTop < topH) {
+            if ($('#filemanager.fixed-top').length) {
+                $('#filemanager').addClass('fixed-buffer');
+            }
+        } else {
+            $('#filemanager').removeClass('fixed-buffer');
+            $('#filemanager').removeClass('noanim');
+        }
+    }
+    function scrollUp() {
+        $('#filemanager').addClass('scroll-up');
+    }
+    // Ie fix
+    if (isIe == 1) {
+        $('body').bind('mousewheel', function (e) {
+            if (e.originalEvent.wheelDelta < 0) {
+                scrollDown();
+            } else {
+                scrollUp();
+            }
+        });
+    } else {
+        if (st > lastScrollTop) {
+            scrollDown();
+        } else {
+            scrollUp();
+        }
+        lastScrollTop = st;
+    }
+    if (fromTop >= topH) {
+        $('#filemanager').addClass('fixed-top');
+        // Safari fix
+        setTimeout(function () {
+            if ($('#filemanager').hasClass('anim')) {} else {
+                $('#filemanager').addClass('anim');
+            }
+        }, 200);
+    } else {
+        var visibleTop = topH - fromTop;
+        var toolbarTop = visibleTop - toolbarH;
+        var headerTop = visibleTop - toolbarH - headerH;
+        // Safari fix
+        $('#filemanager').removeClass('anim');
+        if ($('#filemanager.fixed-buffer').length) {
+            $('#filemanager .toolbar').css('top', toolbarTop);
+            $('#filemanager #header').css('top', headerTop);
+            setTimeout(function () {
+                $('#filemanager').addClass('noanim');
+            }, 200);
+        }
+        if (fromTop == 0) {
+            $('#filemanager').removeClass('fixed-top');
+            $('#filemanager').removeClass('fixed-buffer');
+            $('#filemanager').removeClass('noanim');
+            $('#filemanager #header, #filemanager .toolbar').css('top', 'initial');
+        }
+    }
+        
+    }
+    
+    
+});
+// Editor files list custom scroll
+$(window).load(function () {
+    //$("#editor #file-browser .files-list").mCustomScrollbar();
+});
+// Editor toggle
+$('#editor #file-browser .head .toggle').click(function () {
+    closeDrops();
+    $('#editor #file-browser').toggleClass('open');
+});
+// Editor dropdown
+$('#editor .tools-list .dropdown .toggle').click(function (e) {
+    e.stopPropagation();
+    closeDrops();
+    $(this).closest('.dropdown').toggleClass('open');
+    $(this).next('ul').slideToggle();
+    $(document).one('click', function (e) {
+        var target = $( e.target );
+        if(target && target.attr('class') && target.attr('class').indexOf('jscolor') > -1) {
+        } else {
+            closeDrops();
+        }
+    });
+});
+// Close dropdown if clicked elsewhere
+function closeDrops() {
+    $('.dropdown').removeClass('open');
+    $('.dropdown > ul').slideUp();
+    saveEditorState();
+}
+// Responsive
+$('.menu-toggle').click(function () {
+    $('body').toggleClass('nav-open');
+});
+function responsive() {
+    var windowW = $(window).width();
+    if (windowW <= 1023) {
+        $('#usermenu').prependTo('#mainmenu');
+    } else {
+        $('#usermenu').insertAfter('#header .menu-toggle');
+    }
+}
+$(window).resize(function () {
+    responsive();
+});
+$(document).ready(function () {
+    responsive();
+});
+// Drop upload
+if ($('.drop-upload').length) {
+    $('body').on(
+        'dragover',
+        function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if ($('#drop-alert').length) {} else {
+                $('#wrap').append('<div id="drop-alert"><div class="content"><p class="font-ico images">Drop files here</p></div></div>');
+            }
+            $('body').addClass('dragover');
+        }
+    )
+    $('body').on(
+        'dragenter',
+        function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+    )
+    $('body').on(
+        'dragleave',
+        function (e) {
+            $('body').removeClass('dragover');
+        }
+    )
+    $('body').on(
+        'drop',
+        function (e) {
+            $('body').removeClass('dragover');
+            if (e.originalEvent.dataTransfer) {
+                if (e.originalEvent.dataTransfer.files.length) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    upload(e.originalEvent.dataTransfer.files);
+                }
+            }
+        }
+    );
+}
+function upload(files) {
+    var fileName = '';
+    var imgSrc = '';
+    if ($('#filemanager').length) {} else {
+        if ($('.files-block').length) {} else {
+            $('.add-images').after('<div class="files-block" style="display:none;"><ul></ul><div class="buttons"><a href="_clipping.php" class="button btn-04 font-ico play">Start Clipping</a></div></div>');
+            $('.files-block').slideDown();
+        }
+        $.each(files, function (i, j) {
+            var reader = new FileReader();
+            fileName = files[i].name;
+            if (!(/\.(gif|jpg|jpeg|tiff|png)$/i).test(fileName)) {
+                console.log('You must select an image file only');
+            } else {
+                reader.readAsDataURL(files[i]);
+                reader.onload = function (readEvent) {
+                    imgSrc = readEvent.target.result;
+                    $('.files-block > ul').append('<li><div class="single-file"><div class="image"><div class="content"><div class="actions"><a href="#" class="font-ico dl"></a><a href="#" class="font-ico url"></a><a href="#" class="font-ico del"></a></div><a href="_clipping.php"><img src="' + imgSrc + '" alt="Desc"></a></div></div><p class="title">' + fileName + '</p></div></li>');
+                }
+            }
+        });
+    }
+}
+
+// Copy to clipboard
+
+new Clipboard('.button.copy');

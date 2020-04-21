@@ -1,0 +1,68 @@
+.cropnrotate-modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    padding-top: 100px;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+}
+
+
+.cropnrotate-modal-content {
+    margin: 0px 0px 0px 0px;
+    position: relative;
+    background-color: #464F51;
+    margin: auto;
+    padding: 0;
+    border: 1px solid #888;
+    width: 95%;
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+    -webkit-animation-name: cropnrotateanimatetop;
+    -webkit-animation-duration: 0.4s;
+    animation-name: cropnrotateanimatetop;
+    animation-duration: 0.4s
+}
+
+@-webkit-keyframes cropnrotateanimatetop {
+    from {top:-300px; opacity:0}
+    to {top:0; opacity:1}
+}
+
+@keyframes cropnrotateanimatetop {
+    from {top:-300px; opacity:0}
+    to {top:0; opacity:1}
+}
+
+.cropnrotate-close {
+    background: #212526;
+    color: white;
+    float: right;
+    font-size: 18px;
+}
+
+.cropnrotate-close:hover,
+.cropnrotate-close:focus {
+    background: #212526;
+    color: #ccc;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.cropnrotate-modal-header {
+    padding: 2px 16px;
+    background-color: #2F3638;
+    color: white;
+}
+
+.cropnrotate-modal-body {padding: 0px 0px 0px 0px; margin: 0px 0px 0px 0px; background: #464F51;}
+
+.cropnrotate-modal-footer {
+    padding: 2px 16px;
+    background-color: #464F51;
+    color: white;
+}
