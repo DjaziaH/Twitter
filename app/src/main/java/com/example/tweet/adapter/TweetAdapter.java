@@ -38,10 +38,12 @@ public class TweetAdapter extends ArrayAdapter<Tweet> {
         TextView user = (TextView)convertView.findViewById(R.id.user);
         TextView text = (TextView) convertView.findViewById(R.id.text);
         TextView id = (TextView) convertView.findViewById(R.id.id);
+        TextView date = (TextView) convertView.findViewById(R.id.d);
         ImageView icon = (ImageView) convertView.findViewById(R.id.profile_image);
         user.setText(users.get(list.get(position).getIdUser()-1).getNom()+" "+users.get(list.get(position).getIdUser()-1).getPrenom());
         text.setText(list.get(position).getText());
         id.setText(String.valueOf(list.get(position).getId()));
+        date.setText(list.get(position).getDate());
         icon.setImageResource(users.get(list.get(position).getIdUser()-1).getAvatare());
         return convertView;
     }

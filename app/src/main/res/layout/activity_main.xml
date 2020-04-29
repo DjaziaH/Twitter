@@ -15,7 +15,7 @@
         android:textColor="@color/colorPrimary"
         android:textSize="60dp"
         android:textAlignment="center"
-         />
+        />
 
     <ImageView
         android:layout_width="match_parent"

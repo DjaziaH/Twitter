@@ -1,85 +1,53 @@
 package com.example.tweet;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.FragmentManager;
 
-import android.app.AlertDialog;
 import android.app.Dialog;
-import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.res.Configuration;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ListView;
 
 import com.example.tweet.Data.Tweet;
-import com.example.tweet.adapter.TweetAdapter;
-import com.example.tweet.services.ServiceTweet;
+import com.example.tweet.fragment.Detail_fragment;
+import com.example.tweet.fragment.list_fragment;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 
 
 public class Activity_Tweets extends AppCompatActivity {
 
+
+    FragmentManager myManager;
+    Detail_fragment detail;
+    list_fragment list_land , list_port ;
+
     int idUser = 1;
     static int idTweet = 5;
-    ListView maListView;
-    ServiceTweet service = new ServiceTweet();
-    ArrayList<Tweet> mesDonnees =service.getMesDonnees();
-    SimpleDateFormat formatter = new SimpleDateFormat("EEE MMM dd HH:mm:ss Z yyyy");
 
-
-    public Activity_Tweets() throws ParseException {
+    public Activity_Tweets(){
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity__tweets);
-        maListView = findViewById(R.id.list);
 
-        /*if(savedInstanceState !=null){
-            mesDonnees = (ArrayList<Tweet>) savedInstanceState.getParcelable("donnees");
-        }*/
+        myManager = getSupportFragmentManager();
+        detail = (Detail_fragment) myManager.findFragmentById(R.id.detail);
 
+        list_land = (list_fragment) myManager.findFragmentById(R.id.list_land);
+        list_port = (list_fragment) myManager.findFragmentById(R.id.list_port);
 
-        try {
-
-            final TweetAdapter adapter = new TweetAdapter(Activity_Tweets.this, mesDonnees);
-            maListView.setAdapter(adapter);
-
-            maListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
-                @Override
-                public boolean onItemLongClick(AdapterView<?> parent, View view, final int position, long id) {
-
-                    AlertDialog.Builder confirm = new AlertDialog.Builder(Activity_Tweets.this);
-                    confirm.setTitle("Suppression");
-                    confirm.setIcon(android.R.drawable.ic_dialog_alert);
-                    confirm.setMessage("Vous confirmez la suppression ?");
-                    confirm.setPositiveButton(android.R.string.yes,
-                            new DialogInterface.OnClickListener() {
-                                public void onClick(DialogInterface dialog, int idBtn) {
-                                    mesDonnees.remove(position);
-                                    adapter.notifyDataSetChanged();
-                                }
-                            });
-                    confirm.setNegativeButton(android.R.string.no, null);
-                    confirm.show();
-
-                    return false;
-                }
-            });
-
-
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
     }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu)
     {
@@ -90,7 +58,7 @@ public class Activity_Tweets extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
 
-        final Dialog dialog = new Dialog(this);
+        final Dialog dialog = new Dialog(Activity_Tweets.this);
         dialog.setContentView(R.layout.dialogue);
         Button btnValider = dialog.findViewById(R.id.dialog_btn_valider);
         final EditText editText = dialog.findViewById(R.id.dialog_text);
@@ -99,20 +67,50 @@ public class Activity_Tweets extends AppCompatActivity {
                                               View.OnClickListener() {
                                                   @Override public void onClick(View v) {
                                                       if(!editText.getText().toString().equals("")){
-                                                          Date date = new Date();
-                                                          String currentDate = formatter.format(date);
-                                                          Tweet newTweet = new Tweet(idTweet,editText.getText().toString(),currentDate,idUser);
-                                                          mesDonnees.add(newTweet);
+                                                          list_land = (list_fragment) myManager.findFragmentById(R.id.list_land);
+                                                          list_port = (list_fragment) myManager.findFragmentById(R.id.list_port);
+
+                                                          int displaymode =
+                                                                  getResources().getConfiguration().orientation;
+
+                                                          if(displaymode == Configuration.ORIENTATION_PORTRAIT){
+                                                              list_port.addTweet(idTweet,editText.getText().toString(),idUser);
+                                                              idTweet++;
+                                                          }
+                                                          else{
+                                                              list_land.addTweet(idTweet,editText.getText().toString(),idUser);
+                                                              idTweet++;
+                                                          }
                                                       }
                                                       dialog.hide();
                                                   }
                                               });
-        return true;
 
+        return true;
     }
-    /*@Override
-    public void onSaveInstanceState(Bundle state) {
-        super.onSaveInstanceState(state);
-        state.putParcelable("donnees", (Parcelable) mesDonnees);
-    }*/
+
+    public void onItemClick(final String name , final String date , final String text , final int img ){
+
+
+        if(detail != null){
+
+            //Toast.makeText(Activity_Tweets.this," not null",Toast.LENGTH_LONG).show();
+
+            detail.setValues(name,date,text,img);
+        }else{
+            //Toast.makeText(Activity_Tweets.this,"null",Toast.LENGTH_LONG).show();
+            new Handler().postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    Intent i = new Intent(Activity_Tweets.this , Activity_detail.class);
+                    i.putExtra("name",name);
+                    i.putExtra("text",text);
+                    i.putExtra("date",date);
+                    i.putExtra("img",img);
+                    startActivity(i);
+                    finish();
+                }
+            }, 0);
+        }
+    }
 }

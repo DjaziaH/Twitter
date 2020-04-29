@@ -11,7 +11,7 @@ public class DB_Manager extends SQLiteOpenHelper {
     private static final String DATABASE_NAME = "TweetsDB";
     private static final int DATABASE_VERSION = 1;
 
-    
+
     public DB_Manager(@Nullable Context context ) {
         super(context,  DATABASE_NAME,null  ,DATABASE_VERSION  );
     }
